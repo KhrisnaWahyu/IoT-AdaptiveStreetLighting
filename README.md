@@ -88,7 +88,7 @@ graph TD;
     style ESP32 fill:#f9f,stroke:#333,stroke-width:2px
     style SENSORS fill:#e1f5fe,stroke:#01579b
     style ACTUATORS fill:#fff3e0,stroke:#e65100
-
+```
 ### 3. Tabel Pinout (Mapping)
 
 | Pin ESP32 | Komponen | Keterangan |
@@ -192,4 +192,4 @@ Azkal Azkiya Alfiandri • Khrisna Wahyu Wibisono • Lutfia Rahmah Tunnisa
 © 2025 IoT Smart Light Project.
 
 </div>
-````
+
