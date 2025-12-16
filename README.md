@@ -46,6 +46,8 @@ root/
 ├── 📄 circuit-schematic-diagram.png  # Diagram Wiring
 ├── 📄 README.md                      # Dokumentasi Proyek
 
+````
+
 ## 🛠️ Hardware & Wiring
 
 Bagian ini menjelaskan bagaimana komponen-komponen terhubung ke mikrokontroler ESP32.
