@@ -107,8 +107,6 @@ graph LR;
 
 ---
 
-### 4. Instalasi & Konfigurasi
-
 ## 🚀 Cara Instalasi & Menjalankan
 
 > [!WARNING]
@@ -118,7 +116,7 @@ graph LR;
 Download source code proyek ini ke komputer Anda atau gunakan git:
 ```bash
 git clone [https://github.com/KhrisnaWahyu/IoT-AdaptiveStreetLighting.git]
-
+```
 ### 2. Konfigurasi Web Dashboard (`config.js`)
 Agar dashboard dapat terhubung ke database Anda sendiri:
 
