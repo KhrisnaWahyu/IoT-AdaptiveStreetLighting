@@ -59,8 +59,9 @@ Bagian ini menjelaskan bagaimana komponen-komponen terhubung ke mikrokontroler E
 Berikut adalah visualisasi logika koneksi antar komponen menggunakan ESP32:
 
 ```mermaid
-graph TD;
+graph LR;  
     subgraph SENSORS [Input Sensors]
+        direction TB
         Rain(Rain Sensor) -->|Analog| P35(GPIO 35)
         MQ2(MQ2 Gas Sensor) -->|Analog| P34(GPIO 34)
         BH1750(BH1750 Lux) <-->|I2C| I2C_Bus(SDA:21 / SCL:22)
@@ -79,6 +80,7 @@ graph TD;
     end
 
     subgraph ACTUATORS [Output Devices]
+        direction TB
         P16 --> LED1(LED Street Light 1)
         P17 --> LED2(LED Street Light 2)
         P4 --> Buzzer(Alarm/Buzzer)
@@ -107,7 +109,6 @@ graph TD;
 
 ### 4. Instalasi & Konfigurasi
 
-```markdown
 ## 🚀 Cara Instalasi & Menjalankan
 
 > [!WARNING]
