@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>IOT LIGHT - Dashboard (Live)</title>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <style>
+            :root {
+                --bg: #f3f4f6;
+                --sidebar: #1e1e2d;
+                --card: #fff;
+                --text: #333;
+                --accent: #3699ff;
+                --warn: #eaec7b;
+                --danger: #f64e60;
+                --success: #1bc5bd;
+                --purple: #6f42c1;
+            }
+            body {
+                margin: 0;
+                font-family: "Poppins", sans-serif;
+                background-color: var(--bg);
+                display: flex;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            /* Sidebar & Layout */
+            .sidebar {
+                width: 250px;
+                background: var(--sidebar);
+                color: #fff;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            }
+            .brand {
+                font-size: 20px;
+                font-weight: bold;
+                margin-bottom: 40px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                color: white;
+            }
+            .menu-item {
+                padding: 12px 15px;
+                margin-bottom: 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                color: #a2a3b7;
+                text-decoration: none;
+                transition: 0.3s;
+            }
+            .menu-item:hover,
+            .menu-item.active {
+                background: #1b1b28;
+                color: var(--accent);
+            }
+            .main {
+                flex: 1;
+                padding: 30px;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 25px;
+            }
+
+            /* Cards */
+            .cards-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+            }
+            .card {
+                background: var(--card);
+                border-radius: 12px;
+                padding: 20px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                position: relative;
+            }
+            .card-icon {
+                width: 45px;
+                height: 45px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+            .card-label {
+                font-size: 13px;
+                color: #b5b5c3;
+                font-weight: 500;
+                text-transform: uppercase;
+            }
+            .card-val {
+                font-size: 26px;
+                font-weight: bold;
+                color: #3f4254;
+                margin-top: 5px;
+            }
+
+            /* Controls & Gauge */
+            .bottom-section {
+                display: grid;
+                grid-template-columns: 1fr 2fr;
+                gap: 20px;
+                min-height: 250px;
+            }
+            .gauge-card,
+            .control-panel,
+            .table-container {
+                background: var(--card);
+                border-radius: 12px;
+                padding: 25px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            }
+
+            .btn-mode {
+                flex: 1;
+                padding: 15px;
+                border: none;
+                border-radius: 8px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: 0.3s;
+            }
+            .btn-active {
+                background: var(--accent);
+                color: white;
+                box-shadow: 0 5px 15px rgba(54, 153, 255, 0.3);
+            }
+            .btn-inactive {
+                background: #eee;
+                color: #999;
+            }
+            .slider-row {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                margin-top: 15px;
+                background: #f9f9f9;
+                padding: 15px;
+                border-radius: 10px;
+                transition: 0.3s;
+            }
+            .slider-disabled {
+                opacity: 0.5;
+                pointer-events: none;
+                filter: grayscale(1);
+            }
+            input[type="range"] {
+                flex: 1;
+                accent-color: var(--accent);
+                cursor: pointer;
+            }
+
+            /* Table */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+            }
+            th {
+                color: #b5b5c3;
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 11px;
+                text-align: left;
+                padding: 10px;
+                border-bottom: 1px solid #eee;
+            }
+            td {
+                padding: 12px 10px;
+                border-bottom: 1px dashed #eee;
+                font-size: 13px;
+                color: #555;
+            }
+
+            /* Animasi Update Table */
+            @keyframes flashRow {
+                0% {
+                    background-color: #e1f0ff;
+                }
+                100% {
+                    background-color: transparent;
+                }
+            }
+            .row-update {
+                animation: flashRow 1s ease-out;
+            }
+
+            /* Login Overlay */
+            #login-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #1e1e2d;
+                z-index: 9999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                transition: opacity 0.5s;
+            }
+            .login-box {
+                background: white;
+                padding: 40px;
+                border-radius: 12px;
+                width: 300px;
+                text-align: center;
+            }
+            .login-box input {
+                width: 100%;
+                padding: 12px;
+                margin: 10px 0;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                box-sizing: border-box;
+            }
+            .login-box button {
+                width: 100%;
+                padding: 12px;
+                background: var(--accent);
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+            .hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="login-overlay">
+            <div class="login-box">
+                <h2 style="color: #333">
+                    <i class="fas fa-lock"></i> Secured IoT
+                </h2>
+                <input type="email" id="emailInput" placeholder="Email Admin" />
+                <input type="password" id="passInput" placeholder="Password" />
+                <button id="btnLogin">LOGIN MASUK</button>
+                <p
+                    id="loginError"
+                    style="color: red; font-size: 12px; margin-top: 10px"
+                ></p>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="brand"><i class="fas fa-bolt"></i> IOT LIGHT</div>
+            <a href="dashboard.html" class="menu-item active"
+                ><i class="fas fa-th-large"></i> Dashboard</a
+            >
+            <a href="analytics.html" class="menu-item"
+                ><i class="fas fa-chart-line"></i> Analytics</a
+            >
+            <a href="settings.html" class="menu-item"
+                ><i class="fas fa-cog"></i> Settings</a
+            >
+            <div style="flex: 1"></div>
+            <a href="#" class="menu-item" id="btnLogout"
+                ><i class="fas fa-sign-out-alt"></i> Logout</a
+            >
+        </div>
+
+        <div class="main">
+            <h1 style="margin: 0; font-size: 24px">Live Monitoring</h1>
+            <p style="color: #888; font-size: 14px; margin-top: 5px">
+                Pantau status perangkat dan kontrol manual.
+            </p>
+
+            <div class="cards-grid">
+                <div class="card" style="border-left: 5px solid var(--accent)">
+                    <div
+                        class="card-icon"
+                        style="background: #e1f0ff; color: #3699ff"
+                    >
+                        <i class="fas fa-satellite-dish"></i>
+                    </div>
+                    <div class="card-label">Status Sistem</div>
+                    <div
+                        class="card-val"
+                        id="statusText"
+                        style="font-size: 20px"
+                    >
+                        --
+                    </div>
+                </div>
+                <div class="card">
+                    <div
+                        class="card-icon"
+                        style="background: #fff4de; color: #ffa800"
+                    >
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <div class="card-label">Traffic (Live)</div>
+                    <div class="card-val" id="trafficVal">0</div>
+                </div>
+                <div class="card">
+                    <div
+                        class="card-icon"
+                        style="background: #c9f7f5; color: #1bc5bd"
+                    >
+                        <i class="fas fa-sun"></i>
+                    </div>
+                    <div class="card-label">Intensitas Cahaya</div>
+                    <div class="card-val">
+                        <span id="luxVal">0</span>
+                        <span style="font-size: 14px; color: #999">Lux</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div
+                        class="card-icon"
+                        style="background: #ffe2e5; color: #f64e60"
+                    >
+                        <i class="fas fa-cloud-showers-heavy"></i>
+                    </div>
+                    <div class="card-label">Sensor Hujan</div>
+                    <div class="card-val" id="hujanVal">--</div>
+                </div>
+                <div class="card" style="border-left: 5px solid var(--purple)">
+                    <div
+                        class="card-icon"
+                        style="background: #f3e6ff; color: #6f42c1"
+                    >
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="card-label">Est. Daya Saat Ini</div>
+                    <div class="card-val">
+                        <span id="wattVal">0</span>
+                        <span style="font-size: 14px; color: #999">Watt</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bottom-section">
+                <div class="gauge-card" style="text-align: center">
+                    <h4 style="margin: 0 0 20px 0; color: #555">
+                        Output Lampu (PWM)
+                    </h4>
+                    <div
+                        style="
+                            width: 200px;
+                            height: 120px;
+                            margin: 0 auto;
+                            position: relative;
+                        "
+                    >
+                        <canvas id="pwmChart"></canvas>
+                        <div
+                            id="pwmText"
+                            style="
+                                position: absolute;
+                                bottom: 0;
+                                width: 100%;
+                                font-weight: bold;
+                                font-size: 24px;
+                            "
+                        >
+                            0%
+                        </div>
+                    </div>
+                    <p style="font-size: 12px; color: #999; margin-top: 10px">
+                        Indikator intensitas output LED ke Driver.
+                    </p>
+                </div>
+
+                <div class="control-panel">
+                    <h4 style="margin: 0 0 20px 0; color: #555">
+                        Panel Kontrol
+                    </h4>
+                    <div style="display: flex; gap: 15px">
+                        <button id="btnAuto" class="btn-mode btn-active">
+                            <i class="fas fa-robot"></i> OTOMATIS
+                        </button>
+                        <button id="btnManual" class="btn-mode btn-inactive">
+                            <i class="fas fa-hand-pointer"></i> MANUAL
+                        </button>
+                    </div>
+
+                    <div
+                        id="sliderContainer"
+                        class="slider-row slider-disabled"
+                    >
+                        <i class="fas fa-lightbulb" style="color: #aaa"></i>
+                        <input
+                            type="range"
+                            id="slider"
+                            min="0"
+                            max="255"
+                            value="0"
+                            disabled
+                        />
+                        <span
+                            id="sliderVal"
+                            style="
+                                background: #333;
+                                color: white;
+                                padding: 2px 8px;
+                                border-radius: 4px;
+                                font-size: 12px;
+                            "
+                            >0</span
+                        >
+                    </div>
+                    <p style="font-size: 12px; color: #888; margin-top: 10px">
+                        *Geser slider hanya bisa dilakukan pada mode Manual.
+                    </p>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <h4 style="margin: 0 0 15px 0; color: #555">
+                    Log Aktivitas Terakhir
+                </h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Waktu</th>
+                            <th>Lux</th>
+                            <th>Hujan</th>
+                            <th>Traffic</th>
+                            <th>Status</th>
+                            <th>PWM</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+            import {
+                getAuth,
+                signInWithEmailAndPassword,
+                onAuthStateChanged,
+                signOut,
+            } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+            import {
+                getDatabase,
+                ref,
+                onValue,
+                update,
+                query,
+                limitToLast,
+            } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+            import { firebaseConfig } from './config.js';
+
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            const auth = getAuth(app);
+
+            // DOM Elements
+            const els = {
+                loginOverlay: document.getElementById("login-overlay"),
+                btnLogin: document.getElementById("btnLogin"),
+                btnLogout: document.getElementById("btnLogout"),
+                email: document.getElementById("emailInput"),
+                pass: document.getElementById("passInput"),
+                error: document.getElementById("loginError"),
+                status: document.getElementById("statusText"),
+                traffic: document.getElementById("trafficVal"),
+                lux: document.getElementById("luxVal"),
+                hujan: document.getElementById("hujanVal"),
+                watt: document.getElementById("wattVal"),
+                pwmText: document.getElementById("pwmText"),
+                slider: document.getElementById("slider"),
+                sliderVal: document.getElementById("sliderVal"),
+                sliderContainer: document.getElementById("sliderContainer"),
+                btnAuto: document.getElementById("btnAuto"),
+                btnManual: document.getElementById("btnManual"),
+                tableBody: document.getElementById("tableBody"),
+            };
+
+            // Helper: Ekstrak Waktu dari Firebase Push ID
+            function getTimestampFromId(id) {
+                const PUSH_CHARS =
+                    "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+                let time = 0;
+                for (let i = 0; i < 8; i++) {
+                    time = time * 64 + PUSH_CHARS.indexOf(id.charAt(i));
+                }
+                return new Date(time);
+            }
+
+            // Chart Init
+            let pwmChart;
+            function initChart() {
+                const ctx = document
+                    .getElementById("pwmChart")
+                    .getContext("2d");
+                pwmChart = new Chart(ctx, {
+                    type: "doughnut",
+                    data: {
+                        labels: ["Power", "Remaining"],
+                        datasets: [
+                            {
+                                data: [0, 255],
+                                backgroundColor: ["#3699ff", "#eee"],
+                                borderWidth: 0,
+                                circumference: 180,
+                                rotation: 270,
+                                cutout: "80%",
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false },
+                        },
+                    },
+                });
+            }
+
+            // Auth Logic
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    els.loginOverlay.classList.add("hidden");
+                    if (!pwmChart) initChart();
+                    startApp();
+                } else {
+                    els.loginOverlay.classList.remove("hidden");
+                }
+            });
+
+            els.btnLogin.addEventListener("click", () => {
+                els.error.innerText = "Authenticating...";
+                signInWithEmailAndPassword(
+                    auth,
+                    els.email.value,
+                    els.pass.value
+                ).catch(
+                    (error) => (els.error.innerText = "Error: " + error.message)
+                );
+            });
+
+            els.btnLogout.addEventListener("click", () =>
+                signOut(auth).then(() => location.reload())
+            );
+
+            // App Logic
+            function startApp() {
+                // 1. LIVE SENSOR
+                onValue(ref(db, "live"), (snap) => {
+                    const data = snap.val();
+                    if (!data) return;
+
+                    els.status.innerText = data.status || "--";
+                    els.status.style.color =
+                        data.status && data.status.includes("BAHAYA")
+                            ? "#f64e60"
+                            : "#333";
+
+                    els.traffic.innerText = data.traffic || 0;
+                    els.lux.innerText = parseFloat(data.lux || 0).toFixed(1);
+                    els.hujan.innerText = data.hujan || "--";
+
+                    const pwmVal = parseInt(data.led_pwm || 0);
+                    const wattVal = (pwmVal / 255) * 50;
+                    els.watt.innerText = wattVal.toFixed(1);
+
+                    if (pwmChart) {
+                        pwmChart.data.datasets[0].data = [pwmVal, 255 - pwmVal];
+                        pwmChart.data.datasets[0].backgroundColor =
+                            pwmVal > 200
+                                ? ["#f64e60", "#eee"]
+                                : ["#3699ff", "#eee"];
+                        pwmChart.update();
+                    }
+                    els.pwmText.innerText =
+                        Math.round((pwmVal / 255) * 100) + "%";
+
+                    if (
+                        data.status.includes("MANUAL") &&
+                        document.activeElement !== els.slider
+                    ) {
+                        els.slider.value = pwmVal;
+                        els.sliderVal.innerText = pwmVal;
+                    }
+                });
+
+                // 2. LIVE CONTROL MODE
+                onValue(ref(db, "control/modeOtomatis"), (snap) => {
+                    const isAuto = snap.val();
+                    updateUIControls(isAuto);
+                });
+
+                // 3. LOGS TABLE (REALTIME FIX)
+                const logsRef = query(ref(db, "logs"), limitToLast(8)); // Menampilkan 8 data terakhir
+                onValue(logsRef, (snapshot) => {
+                    if (!snapshot.exists()) return;
+
+                    // Konversi ke Array
+                    let logArray = [];
+                    snapshot.forEach((child) => {
+                        logArray.push({ key: child.key, ...child.val() });
+                    });
+
+                    // Reverse agar data terbaru di atas
+                    logArray.reverse();
+
+                    // Generate HTML
+                    let tableHTML = "";
+                    logArray.forEach((item) => {
+                        const dateObj = getTimestampFromId(item.key);
+                        // Format Waktu dengan DETIK
+                        const time = dateObj.toLocaleTimeString("id-ID", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                        });
+
+                        const isDanger =
+                            item.status && item.status.includes("BAHAYA");
+                        const isNight =
+                            item.status && item.status.includes("MALAM");
+
+                        // Style per baris
+                        const rowStyle = isDanger
+                            ? "background:#fff5f8; color:#f64e60"
+                            : "";
+                        const badgeStyle = isNight
+                            ? "background:#1e1e2d; color:white"
+                            : "background:#eee; color:#333";
+
+                        tableHTML += `
+                            <tr class="row-update" style="${rowStyle}">
+                                <td style="font-weight:bold; font-family:monospace">${time}</td>
+                                <td>${parseFloat(item.lux || 0).toFixed(0)}</td>
+                                <td>${item.hujan || "-"}</td>
+                                <td>${item.traffic || 0}</td>
+                                <td><span style="font-size:10px; padding:3px 8px; border-radius:4px; ${badgeStyle}; font-weight:600">${
+                            item.status
+                        }</span></td>
+                                <td>${item.led_pwm}</td>
+                            </tr>`;
+                    });
+                    els.tableBody.innerHTML = tableHTML;
+                });
+            }
+
+            // Controls Events
+            els.btnAuto.addEventListener("click", () =>
+                update(ref(db, "control"), { modeOtomatis: true })
+            );
+            els.btnManual.addEventListener("click", () =>
+                update(ref(db, "control"), { modeOtomatis: false })
+            );
+            els.slider.addEventListener("change", (e) =>
+                update(ref(db, "control"), {
+                    manualValue: parseInt(e.target.value),
+                    modeOtomatis: false,
+                })
+            );
+            els.slider.addEventListener(
+                "input",
+                (e) => (els.sliderVal.innerText = e.target.value)
+            );
+
+            function updateUIControls(isAuto) {
+                if (isAuto) {
+                    els.btnAuto.className = "btn-mode btn-active";
+                    els.btnManual.className = "btn-mode btn-inactive";
+                    els.slider.disabled = true;
+                    els.sliderContainer.classList.add("slider-disabled");
+                } else {
+                    els.btnAuto.className = "btn-mode btn-inactive";
+                    els.btnManual.className = "btn-mode btn-active";
+                    els.slider.disabled = false;
+                    els.sliderContainer.classList.remove("slider-disabled");
+                }
+            }
+        </script>
+    </body>
+</html>

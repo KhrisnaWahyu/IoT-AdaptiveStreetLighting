@@ -1,0 +1,5 @@
+# Arduino Secrets
+esp-firmware/esp_config_real.h
+
+# Web Secrets
+web-dashboard/config_real.js

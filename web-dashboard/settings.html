@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <title>IOT LIGHT - Settings</title>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        />
+        <style>
+            :root {
+                --bg: #f3f4f6;
+                --sidebar: #1e1e2d;
+                --card: #fff;
+                --text: #333;
+                --accent: #3699ff;
+                --danger: #f64e60;
+            }
+            body {
+                margin: 0;
+                font-family: "Poppins", sans-serif;
+                background: var(--bg);
+                display: flex;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            .sidebar {
+                width: 250px;
+                background: var(--sidebar);
+                color: #fff;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+            }
+            .menu-item {
+                padding: 12px;
+                margin-bottom: 8px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                color: #a2a3b7;
+                text-decoration: none;
+                transition: 0.3s;
+            }
+            .menu-item:hover,
+            .menu-item.active {
+                background: #1b1b28;
+                color: var(--accent);
+            }
+            .main {
+                flex: 1;
+                padding: 30px;
+                overflow-y: auto;
+            }
+
+            /* SETTINGS FORM */
+            .settings-card {
+                background: #fff;
+                padding: 30px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            }
+            .card-header {
+                font-size: 16px;
+                font-weight: bold;
+                margin-bottom: 20px;
+                color: #333;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 10px;
+            }
+
+            .setting-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 15px 0;
+                border-bottom: 1px dashed #eee;
+            }
+            .setting-info h4 {
+                margin: 0 0 5px 0;
+                color: #333;
+                font-size: 14px;
+            }
+            .setting-info p {
+                margin: 0;
+                color: #888;
+                font-size: 12px;
+            }
+
+            .btn-danger {
+                background: var(--danger);
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: bold;
+                transition: 0.3s;
+            }
+            .btn-danger:hover {
+                background: #d63d50;
+                box-shadow: 0 4px 10px rgba(246, 78, 96, 0.3);
+            }
+
+            .btn-save {
+                background: var(--accent);
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: bold;
+            }
+
+            input[type="number"] {
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                width: 80px;
+                text-align: center;
+            }
+
+            /* Login Overlay */
+            #login-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #1e1e2d;
+                z-index: 9999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                transition: opacity 0.5s;
+            }
+            .login-box {
+                background: white;
+                padding: 40px;
+                border-radius: 12px;
+                width: 300px;
+                text-align: center;
+            }
+            .hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="login-overlay">
+            <div class="login-box">
+                <h2 style="color: #333">
+                    <i class="fas fa-lock"></i> Security Check
+                </h2>
+                <p style="color: #666; font-size: 13px">
+                    Login diperlukan untuk mengakses Pengaturan.
+                </p>
+                <a
+                    href="dashboard.html"
+                    style="
+                        color: var(--accent);
+                        text-decoration: none;
+                        font-weight: bold;
+                    "
+                    >Ke Halaman Login</a
+                >
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div
+                class="brand"
+                style="
+                    font-size: 20px;
+                    font-weight: bold;
+                    margin-bottom: 40px;
+                    color: white;
+                "
+            >
+                <i class="fas fa-bolt"></i> IOT LIGHT
+            </div>
+            <a href="dashboard.html" class="menu-item"
+                ><i class="fas fa-th-large"></i> Dashboard</a
+            >
+            <a href="analytics.html" class="menu-item"
+                ><i class="fas fa-chart-line"></i> Analytics</a
+            >
+            <a href="settings.html" class="menu-item active"
+                ><i class="fas fa-cog"></i> Settings</a
+            >
+        </div>
+
+        <div class="main">
+            <h1 style="margin-top: 0">Pengaturan Sistem</h1>
+
+            <div class="settings-card">
+                <div class="card-header">
+                    <i class="fas fa-sliders-h"></i> Konfigurasi Parameter
+                    (Thresholds)
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Batas Lux Malam</h4>
+                        <p>
+                            Lampu menyala jika cahaya di bawah nilai ini
+                            (Default: 20).
+                        </p>
+                    </div>
+                    <input type="number" id="luxThreshold" value="20" />
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Tarif Listrik (IDR/kWh)</h4>
+                        <p>
+                            Untuk kalkulasi biaya di Analytics (Default: 1444).
+                        </p>
+                    </div>
+                    <input type="number" id="electricRate" value="1444" />
+                </div>
+
+                <div style="margin-top: 20px; text-align: right">
+                    <button class="btn-save" id="btnSaveParams">
+                        <i class="fas fa-save"></i> Simpan Konfigurasi
+                    </button>
+                </div>
+            </div>
+
+            <div
+                class="settings-card"
+                style="border-left: 5px solid var(--danger)"
+            >
+                <div class="card-header" style="color: var(--danger)">
+                    <i class="fas fa-exclamation-triangle"></i> Zona Bahaya
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Reset Traffic Counter</h4>
+                        <p>
+                            Mengembalikan hitungan jumlah kendaraan menjadi 0
+                            pada ESP32.
+                        </p>
+                    </div>
+                    <button class="btn-danger" id="btnResetTraffic">
+                        Reset Counter
+                    </button>
+                </div>
+
+                <div class="setting-item" style="border: none">
+                    <div class="setting-info">
+                        <h4>Hapus Riwayat Data (Logs)</h4>
+                        <p>
+                            Menghapus semua data grafik dan histori dari
+                            Database secara permanen.
+                        </p>
+                    </div>
+                    <button class="btn-danger" id="btnClearLogs">
+                        Hapus Data
+                    </button>
+                </div>
+            </div>
+
+            <p style="text-align: center; color: #aaa; font-size: 12px">
+                Smart Light System v2.1 (Secure Build)
+            </p>
+        </div>
+
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+            import {
+                getAuth,
+                onAuthStateChanged,
+            } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+            import {
+                getDatabase,
+                ref,
+                update,
+                remove,
+                get,
+            } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+            import { firebaseConfig } from './config.js';
+
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            const auth = getAuth(app);
+
+            // Security Check
+            const loginOverlay = document.getElementById("login-overlay");
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    loginOverlay.classList.add("hidden");
+                    loadCurrentSettings();
+                } else {
+                    loginOverlay.classList.remove("hidden");
+                }
+            });
+
+            // Load Settings Awal dari DB
+            function loadCurrentSettings() {
+                get(ref(db, "config")).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        if (data.luxThreshold)
+                            document.getElementById("luxThreshold").value =
+                                data.luxThreshold;
+                        if (data.electricRate)
+                            document.getElementById("electricRate").value =
+                                data.electricRate;
+                    }
+                });
+            }
+
+            // Action: Simpan Parameter
+            document
+                .getElementById("btnSaveParams")
+                .addEventListener("click", () => {
+                    const lux = parseInt(
+                        document.getElementById("luxThreshold").value
+                    );
+                    const rate = parseInt(
+                        document.getElementById("electricRate").value
+                    );
+
+                    update(ref(db, "config"), {
+                        luxThreshold: lux,
+                        electricRate: rate,
+                    })
+                        .then(() => alert("Konfigurasi tersimpan!"))
+                        .catch((e) => alert(e));
+                });
+
+            // Action: Reset Traffic
+            document
+                .getElementById("btnResetTraffic")
+                .addEventListener("click", () => {
+                    if (confirm("Yakin reset counter kendaraan?")) {
+                        update(ref(db, "control"), { resetCount: true })
+                            .then(() => alert("Perintah Reset dikirim!"))
+                            .catch((err) => alert("Gagal: " + err));
+                    }
+                });
+
+            // Action: Hapus Logs
+            document
+                .getElementById("btnClearLogs")
+                .addEventListener("click", () => {
+                    if (
+                        confirm(
+                            "PERINGATAN: Data grafik akan hilang. Lanjutkan?"
+                        )
+                    ) {
+                        remove(ref(db, "logs"))
+                            .then(() => alert("Database Logs bersih."))
+                            .catch((err) => alert("Gagal: " + err));
+                    }
+                });
+        </script>
+    </body>
+</html>

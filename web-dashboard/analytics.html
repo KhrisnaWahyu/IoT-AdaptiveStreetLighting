@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>IOT LIGHT - Ultimate Analytics</title>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <style>
+            :root {
+                --bg: #f3f4f6;
+                --sidebar: #1e1e2d;
+                --card: #fff;
+                --accent: #3699ff;
+                --danger: #f64e60;
+                --success: #1bc5bd;
+                --info: #0dcaf0;
+                --purple: #6f42c1;
+                --warning: #ffa800;
+                --dark: #212121;
+            }
+
+            .header-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+            .btn-download {
+                background: var(--success);
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-family: "Poppins", sans-serif;
+                font-weight: 500;
+                transition: 0.3s;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .btn-download:hover {
+                background: #15aabf;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(27, 197, 189, 0.3);
+            }
+
+            body {
+                margin: 0;
+                font-family: "Poppins", sans-serif;
+                background: var(--bg);
+                display: flex;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            /* Sidebar & Layout */
+            .sidebar {
+                width: 250px;
+                background: var(--sidebar);
+                color: #fff;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                flex-shrink: 0;
+            }
+            .menu-item {
+                padding: 12px;
+                margin-bottom: 8px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                color: #a2a3b7;
+                text-decoration: none;
+                transition: 0.3s;
+            }
+            .menu-item:hover,
+            .menu-item.active {
+                background: #1b1b28;
+                color: var(--accent);
+            }
+            .main {
+                flex: 1;
+                padding: 30px;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+            h1 {
+                margin: 0;
+                font-size: 24px;
+                color: #333;
+            }
+
+            /* Logic Info Box (Diperbaiki Tampilannya) */
+            .logic-box {
+                background: #e1f0ff;
+                border-left: 5px solid var(--accent);
+                padding: 20px;
+                border-radius: 8px;
+                margin-bottom: 10px;
+                font-size: 13px;
+                color: #004085;
+                line-height: 1.6;
+            }
+            .logic-title {
+                font-weight: bold;
+                font-size: 14px;
+                margin-bottom: 8px;
+                display: block;
+                text-transform: uppercase;
+            }
+
+            /* Grid & Cards */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+            }
+            .stat-card {
+                background: #fff;
+                padding: 20px;
+                border-radius: 12px;
+                border-left: 5px solid var(--accent);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+                position: relative;
+            }
+            .stat-title {
+                font-size: 11px;
+                color: #888;
+                text-transform: uppercase;
+                font-weight: 600;
+            }
+            .stat-val {
+                font-size: 20px;
+                font-weight: bold;
+                margin-top: 5px;
+                color: #333;
+            }
+            .stat-desc {
+                font-size: 10px;
+                color: #aaa;
+                margin-top: 5px;
+            }
+            .icon-bg {
+                position: absolute;
+                right: 20px;
+                top: 20px;
+                font-size: 24px;
+                opacity: 0.1;
+                color: #333;
+            }
+
+            /* Charts */
+            .charts-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                min-height: 350px;
+            }
+            .chart-card {
+                background: #fff;
+                padding: 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+                display: flex;
+                flex-direction: column;
+            }
+            .chart-wrapper {
+                position: relative;
+                flex: 1;
+                min-height: 250px;
+            }
+
+            #login-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #1e1e2d;
+                z-index: 9999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                transition: opacity 0.5s;
+            }
+            .hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="login-overlay">
+            <div style="color: white; text-align: center">
+                <h2>Akses Dibatasi</h2>
+                <p>Silakan Login via Dashboard.</p>
+                <a href="dashboard.html" style="color: var(--accent)"
+                    >Ke Halaman Login</a
+                >
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div
+                style="
+                    font-size: 20px;
+                    font-weight: bold;
+                    margin-bottom: 40px;
+                    color: white;
+                "
+            >
+                <i class="fas fa-bolt"></i> IOT LIGHT
+            </div>
+            <a href="dashboard.html" class="menu-item"
+                ><i class="fas fa-th-large"></i> Dashboard</a
+            >
+            <a href="analytics.html" class="menu-item active"
+                ><i class="fas fa-chart-line"></i> Analytics</a
+            >
+            <a href="settings.html" class="menu-item"
+                ><i class="fas fa-cog"></i> Settings</a
+            >
+        </div>
+
+        <div class="main">
+            <div class="header-row">
+                <h1>Analytics Center</h1>
+                <button class="btn-download" id="downloadBtn">
+                    <i class="fas fa-file-download"></i> Download Data (.CSV)
+                </button>
+            </div>
+
+            <div class="logic-box">
+                <span class="logic-title"
+                    ><i class="fas fa-info-circle"></i> Metode Analisis &
+                    Kalkulasi (Digital Twin)</span
+                >
+                <div
+                    style="
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 20px;
+                    "
+                >
+                    <div>
+                        <b>1. Prediksi Perawatan (Lifetime):</b><br />
+                        Menggunakan algoritma <i>Stress-Cycle</i>. Umur lampu
+                        berkurang <b>0.05 hari</b> setiap data masuk jika PWM >
+                        80% (Panas), dan hanya <b>0.01 hari</b> jika redup.
+                    </div>
+                    <div>
+                        <b>2. Estimasi Daya & Biaya:</b><br />
+                        Simulasi beban PJU 50 Watt. Rumus:
+                        <b>(PWM / 255) × 50 Watt</b>. <br />
+                        Konversi Rupiah menggunakan TDL PJU:
+                        <b>Rp 1.444 / kWh</b>.
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card" style="border-color: var(--info)">
+                    <div class="stat-title">Dominasi Cuaca</div>
+                    <div class="stat-val" id="dominantWeather">--</div>
+                    <div class="stat-desc">Kondisi terbanyak</div>
+                    <i class="fas fa-cloud-sun icon-bg"></i>
+                </div>
+
+                <div class="stat-card" style="border-color: var(--accent)">
+                    <div class="stat-title">Rata-rata Redup</div>
+                    <div class="stat-val">
+                        <span id="avgBrightness">0</span>%
+                    </div>
+                    <div class="stat-desc">Intensitas LED Harian</div>
+                    <i class="fas fa-lightbulb icon-bg"></i>
+                </div>
+
+                <div class="stat-card" style="border-color: var(--purple)">
+                    <div class="stat-title">Traffic Realtime</div>
+                    <div class="stat-val" id="realtimeTraffic">0</div>
+                    <div class="stat-desc">Kendaraan saat ini</div>
+                    <i class="fas fa-car icon-bg"></i>
+                </div>
+
+                <div class="stat-card" style="border-color: var(--dark)">
+                    <div class="stat-title">Jam Sibuk (Peak)</div>
+                    <div class="stat-val" id="peakHourTime">--:00</div>
+                    <div class="stat-desc">Lalu lintas terpadat</div>
+                    <i class="fas fa-clock icon-bg"></i>
+                </div>
+
+                <div class="stat-card" style="border-color: var(--warning)">
+                    <div class="stat-title">Est. Biaya Harian</div>
+                    <div
+                        class="stat-val"
+                        style="color: var(--warning); font-size: 18px"
+                    >
+                        Rp <span id="costIDR">0</span>
+                    </div>
+                    <div class="stat-desc">Per 1 Titik Lampu</div>
+                    <i class="fas fa-money-bill-wave icon-bg"></i>
+                </div>
+
+                <div class="stat-card" style="border-color: var(--danger)">
+                    <div class="stat-title">Insiden Bahaya</div>
+                    <div
+                        class="stat-val"
+                        style="color: var(--danger)"
+                        id="accidentCount"
+                    >
+                        0
+                    </div>
+                    <div class="stat-desc">Deteksi Api/Asap (MQ2)</div>
+                    <i class="fas fa-fire-extinguisher icon-bg"></i>
+                </div>
+
+                <div class="stat-card" style="border-color: var(--danger)">
+                    <div class="stat-title">Sisa Umur Lampu</div>
+                    <div class="stat-val">
+                        <span id="lampHealth">--</span> Hari
+                    </div>
+                    <div class="stat-desc">Prediksi Maintenance</div>
+                    <i class="fas fa-tools icon-bg"></i>
+                </div>
+
+                <div class="stat-card" style="border-color: var(--success)">
+                    <div class="stat-title">Efisiensi Energi</div>
+                    <div class="stat-val">
+                        <span id="energySavings">0</span>%
+                    </div>
+                    <div class="stat-desc">vs Konvensional</div>
+                    <i class="fas fa-leaf icon-bg"></i>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h4>
+                    <i class="fas fa-chart-area"></i> Monitoring Lingkungan &
+                    Respon Sistem
+                </h4>
+                <div class="chart-wrapper">
+                    <canvas id="mainComboChart"></canvas>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h4>
+                        <i class="fas fa-road"></i> Analisis Traffic (Per Jam)
+                    </h4>
+                    <div class="chart-wrapper">
+                        <canvas id="hourlyTrafficChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h4>
+                        <i class="fas fa-calendar-alt"></i> Traffic Harian
+                        (Akumulasi)
+                    </h4>
+                    <div class="chart-wrapper">
+                        <canvas id="dailyTrafficChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h4>
+                    <i class="fas fa-file-invoice-dollar"></i> Proyeksi Biaya
+                    Listrik (2 Titik Lampu)
+                </h4>
+                <p style="font-size: 11px; color: #888">
+                    Simulasi biaya bulanan (30 hari) untuk 2 unit lampu jalan.
+                </p>
+                <div class="chart-wrapper" style="height: 200px">
+                    <canvas id="costCompChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+            import {
+                getAuth,
+                onAuthStateChanged,
+            } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+            import {
+                getDatabase,
+                ref,
+                query,
+                limitToLast,
+                onValue,
+            } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+            import { firebaseConfig } from './config.js';
+
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            const auth = getAuth(app);
+
+            // --- VARIABEL GLOBAL UNTUK DOWNLOAD ---
+            let globalLogData = [];
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    document
+                        .getElementById("login-overlay")
+                        .classList.add("hidden");
+                    initAnalytics();
+                } else {
+                    document
+                        .getElementById("login-overlay")
+                        .classList.remove("hidden");
+                }
+            });
+
+            // --- KONFIGURASI CHART (SAMA SEPERTI SEBELUMNYA) ---
+            const ctxMain = document
+                .getElementById("mainComboChart")
+                .getContext("2d");
+            const mainChart = new Chart(ctxMain, {
+                type: "line",
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: "Cahaya (Lux)",
+                            data: [],
+                            borderColor: "#3699ff",
+                            backgroundColor: "rgba(54, 153, 255, 0.1)",
+                            yAxisID: "yLux",
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                        },
+                        {
+                            label: "Daya (Watt)",
+                            data: [],
+                            borderColor: "#ffa800",
+                            yAxisID: "yWatt",
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            pointRadius: 0,
+                        },
+                        {
+                            label: "Kesehatan Lampu",
+                            data: [],
+                            borderColor: "#f64e60",
+                            yAxisID: "yLife",
+                            borderWidth: 1,
+                            tension: 0,
+                            pointRadius: 0,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: "index", intersect: false },
+                    scales: {
+                        x: { grid: { display: false } },
+                        yLux: {
+                            type: "linear",
+                            display: true,
+                            position: "left",
+                            title: { display: true, text: "Lux" },
+                        },
+                        yWatt: {
+                            type: "linear",
+                            display: true,
+                            position: "right",
+                            min: 0,
+                            max: 60,
+                            grid: { drawOnChartArea: false },
+                        },
+                        yLife: { display: false },
+                    },
+                },
+            });
+
+            const ctxHourly = document
+                .getElementById("hourlyTrafficChart")
+                .getContext("2d");
+            const hourlyChart = new Chart(ctxHourly, {
+                type: "bar",
+                data: {
+                    labels: [...Array(24).keys()].map((h) => `${h}:00`),
+                    datasets: [
+                        {
+                            label: "Rata-rata Kendaraan",
+                            data: new Array(24).fill(0),
+                            backgroundColor: "#6f42c1",
+                            borderRadius: 4,
+                        },
+                    ],
+                },
+                options: { responsive: true, maintainAspectRatio: false },
+            });
+
+            const ctxDaily = document
+                .getElementById("dailyTrafficChart")
+                .getContext("2d");
+            const dailyChart = new Chart(ctxDaily, {
+                type: "bar",
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: "Total Kendaraan",
+                            data: [],
+                            backgroundColor: "#3699ff",
+                            borderRadius: 4,
+                        },
+                    ],
+                },
+                options: { responsive: true, maintainAspectRatio: false },
+            });
+
+            const ctxCost = document
+                .getElementById("costCompChart")
+                .getContext("2d");
+            const costChart = new Chart(ctxCost, {
+                type: "bar",
+                data: {
+                    labels: ["Estimasi Biaya (Rp)"],
+                    datasets: [
+                        {
+                            label: "Konvensional (2 Lampu)",
+                            data: [0],
+                            backgroundColor: "#e4e6ef",
+                        },
+                        {
+                            label: "IoT Smart Light (2 Lampu)",
+                            data: [0],
+                            backgroundColor: "#1bc5bd",
+                        },
+                    ],
+                },
+                options: {
+                    indexAxis: "y",
+                    responsive: true,
+                    maintainAspectRatio: false,
+                },
+            });
+
+            function getTimestampFromId(id) {
+                const PUSH_CHARS =
+                    "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+                let time = 0;
+                for (let i = 0; i < 8; i++) {
+                    time = time * 64 + PUSH_CHARS.indexOf(id.charAt(i));
+                }
+                return new Date(time);
+            }
+
+            // --- LOGIKA UTAMA & PENGOLAHAN DATA ---
+            function initAnalytics() {
+                const logsRef = query(ref(db, "logs"), limitToLast(500));
+
+                onValue(logsRef, (snapshot) => {
+                    const data = snapshot.val();
+                    if (!data) return;
+
+                    // Reset Global Data untuk Download
+                    globalLogData = [];
+
+                    // Arrays untuk Chart
+                    const labels = [];
+                    const dLux = [];
+                    const dWatt = [];
+                    const dLife = [];
+
+                    // Variables Accumulator
+                    let totalSmartWatts = 0;
+                    let totalStdWatts = 0;
+                    let totalPwm = 0;
+                    let incidentCount = 0;
+                    let count = 0;
+                    let currentRealtimeTraffic = 0;
+
+                    // Grouping Data
+                    const dailyTrafficMap = {};
+                    const hourlyTrafficSum = new Array(24).fill(0);
+                    const hourlyDataCount = new Array(24).fill(0);
+                    const weatherCounts = {
+                        HUJAN: 0,
+                        MENDUNG: 0,
+                        CERAH: 0,
+                        MALAM: 0,
+                    };
+
+                    let currentHealth = 1825; // 5 Tahun
+
+                    Object.keys(data).forEach((key) => {
+                        const item = data[key];
+                        const dateObj = getTimestampFromId(key);
+                        const timeStr = dateObj.toLocaleTimeString("id-ID", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        });
+                        const fullDate = dateObj.toLocaleDateString("id-ID");
+                        const dateKey = dateObj.toLocaleDateString("id-ID", {
+                            weekday: "short",
+                            day: "numeric",
+                        });
+                        const hour = dateObj.getHours();
+
+                        // Parsing Values
+                        const lx = parseFloat(item.lux || 0);
+                        const pwm = parseInt(item.led_pwm || 0);
+                        const trf = parseInt(item.traffic || 0);
+                        const status = (item.status || "").toUpperCase();
+                        const alertAsap = (item.alert_asap || "").toUpperCase();
+
+                        // 1. Digital Twin Calc
+                        const smartW = (pwm / 255) * 50;
+                        const stdW = 50;
+                        const pwmPct = (pwm / 255) * 100;
+
+                        // 2. Logic Perawatan
+                        const stress = smartW > 40 ? 0.05 : 0.01;
+                        currentHealth -= stress;
+
+                        // 3. Logic Traffic
+                        if (!dailyTrafficMap[dateKey])
+                            dailyTrafficMap[dateKey] = 0;
+                        if (trf > dailyTrafficMap[dateKey])
+                            dailyTrafficMap[dateKey] = trf;
+
+                        hourlyTrafficSum[hour] += trf;
+                        hourlyDataCount[hour]++;
+                        currentRealtimeTraffic = trf;
+
+                        // 4. Logic Cuaca & Insiden
+                        if (
+                            status.includes("HUJAN") ||
+                            status.includes("BASAH")
+                        )
+                            weatherCounts["HUJAN"]++;
+                        else if (lx > 1000) weatherCounts["CERAH"]++;
+                        else if (lx > 50 && lx <= 1000)
+                            weatherCounts["MENDUNG"]++;
+                        else weatherCounts["MALAM"]++;
+
+                        if (status.includes("BAHAYA") || alertAsap === "BAHAYA")
+                            incidentCount++;
+
+                        // SIMPAN KE GLOBAL DATA (Untuk Download CSV)
+                        globalLogData.push({
+                            tanggal: fullDate,
+                            jam: timeStr,
+                            lux: lx,
+                            pwm_val: pwm,
+                            dimming_persen: pwmPct.toFixed(1),
+                            estimasi_watt: smartW.toFixed(2),
+                            traffic: trf,
+                            status_cuaca: status,
+                            alert_bahaya: alertAsap,
+                            sisa_umur: currentHealth.toFixed(4),
+                        });
+
+                        // Push Arrays Chart
+                        labels.push(timeStr);
+                        dLux.push(lx);
+                        dWatt.push(smartW);
+                        dLife.push(Math.floor(currentHealth));
+
+                        // Akumulasi
+                        totalSmartWatts += smartW;
+                        totalStdWatts += stdW;
+                        totalPwm += pwmPct;
+                        count++;
+                    });
+
+                    // --- HITUNG STATISTIK FINAL ---
+                    let domWeather = "MENDUNG";
+                    let maxC = 0;
+                    for (const [w, c] of Object.entries(weatherCounts)) {
+                        if (c > maxC) {
+                            maxC = c;
+                            domWeather = w;
+                        }
+                    }
+                    document.getElementById("dominantWeather").innerText =
+                        domWeather;
+
+                    // Peak Hour
+                    let maxHourlyTraffic = 0;
+                    let peakHour = 0;
+                    const avgHourlyTraffic = hourlyTrafficSum.map(
+                        (val, idx) => {
+                            const points = hourlyDataCount[idx] || 1;
+                            const avg = Math.floor(val / points);
+                            if (avg > maxHourlyTraffic) {
+                                maxHourlyTraffic = avg;
+                                peakHour = idx;
+                            }
+                            return avg;
+                        }
+                    );
+                    document.getElementById(
+                        "peakHourTime"
+                    ).innerText = `${peakHour}:00 - ${peakHour + 1}:00`;
+
+                    // Financial
+                    const avgSmartW = count ? totalSmartWatts / count : 0;
+                    const dailyCostIDR = (avgSmartW * 12 * 1444) / 1000;
+                    document.getElementById("costIDR").innerText =
+                        Math.floor(dailyCostIDR).toLocaleString("id-ID");
+
+                    // Lain-lain
+                    document.getElementById("avgBrightness").innerText = count
+                        ? (totalPwm / count).toFixed(0)
+                        : 0;
+                    document.getElementById("realtimeTraffic").innerText =
+                        currentRealtimeTraffic;
+                    document.getElementById("accidentCount").innerText =
+                        incidentCount;
+                    document.getElementById("lampHealth").innerText =
+                        Math.floor(currentHealth);
+
+                    let savings = 0;
+                    if (totalStdWatts > 0)
+                        savings =
+                            ((totalStdWatts - totalSmartWatts) /
+                                totalStdWatts) *
+                            100;
+                    document.getElementById("energySavings").innerText =
+                        savings.toFixed(1);
+
+                    // --- UPDATE GRAFIK ---
+                    mainChart.data.labels = labels;
+                    mainChart.data.datasets[0].data = dLux;
+                    mainChart.data.datasets[1].data = dWatt;
+                    mainChart.data.datasets[2].data = dLife;
+                    mainChart.update();
+
+                    hourlyChart.data.datasets[0].data = avgHourlyTraffic;
+                    hourlyChart.update();
+
+                    dailyChart.data.labels = Object.keys(dailyTrafficMap);
+                    dailyChart.data.datasets[0].data =
+                        Object.values(dailyTrafficMap);
+                    dailyChart.update();
+
+                    const monthSmart = dailyCostIDR * 30 * 2;
+                    const monthStd = ((50 * 12 * 1444) / 1000) * 30 * 2;
+                    costChart.data.datasets[0].data = [Math.floor(monthStd)];
+                    costChart.data.datasets[1].data = [Math.floor(monthSmart)];
+                    costChart.update();
+                });
+            }
+
+            // --- FUNGSI DOWNLOAD CSV ---
+            document
+                .getElementById("downloadBtn")
+                .addEventListener("click", () => {
+                    if (globalLogData.length === 0) {
+                        alert(
+                            "Belum ada data yang dimuat. Harap tunggu sebentar."
+                        );
+                        return;
+                    }
+
+                    let csvContent = "data:text/csv;charset=utf-8,";
+                    // Header CSV
+                    csvContent +=
+                        "Tanggal,Jam,Intensitas Cahaya (Lux),PWM Value (0-255),Dimming (%),Beban Daya (Watt),Traffic Count,Status Cuaca,Status Bahaya,Sisa Umur (Hari)\n";
+
+                    // Isi Data
+                    globalLogData.forEach((row) => {
+                        const rowStr = `${row.tanggal},${row.jam},${row.lux},${row.pwm_val},${row.dimming_persen},${row.estimasi_watt},${row.traffic},${row.status_cuaca},${row.alert_bahaya},${row.sisa_umur}`;
+                        csvContent += rowStr + "\n";
+                    });
+
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", "iot_smartlight_report.csv");
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+        </script>
+    </body>
+</html>
